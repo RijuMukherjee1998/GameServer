@@ -7,11 +7,34 @@
 </head>
 <body>
     <h1>Game Tester</h1>
+    <button id="btnCreate">Create New Game</button>
     <script>
         let ws=new WebSocket("ws://localhost:9090")
+        let clientId=null;
+        let gameId=null;
+        const btnCreate=document.getElementById("btnCreate");
+
+        btnCreate.addEventListener("click",e=>{
+            const payLoad ={
+                "method":"create",
+                "clientId":clientId
+            }
+            ws.send(JSON.stringify(payLoad));
+        })
         ws.onmessage = message=>{
             const response=JSON.parse(message.data);
-            console.log(response);
+            //connect
+            if(response.method==="connect"){
+                clientId=response.clientId;
+                console.log("Successfully connected with server with ClientID:"+clientId);
+            }
+
+            //create 
+            if(response.method==="create"){
+                gameId=response.game.id;
+                console.log("Successfully created game with GameID:"+gameId);
+            }
+
         }
     </script>
 
