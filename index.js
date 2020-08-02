@@ -4,6 +4,8 @@ const { v4: uuidv4 } = require('uuid');
 const httpServer=http.createServer();
 httpServer.listen(9090,()=>console.log("Listening to port 9090"));
 
+const colors=["Red","Blue","Green","Yellow","Orange","Purple"];
+
 const clients = {};
 const games ={};
 const wsServer = new websocketServer({
@@ -24,7 +26,8 @@ wsServer.on("request",request=>{
             const gameId=uuidv4();
             games[gameId]={
                 "id":gameId,
-                "balls":20
+                "balls":20,
+                "clients":[]
             }
             const payLoad={
                 "method":"create",
@@ -35,9 +38,35 @@ wsServer.on("request",request=>{
             con.send(JSON.stringify(payLoad))
         }
 
+        if(result.method==="join"){
+            const clientId = result.clientId;
+            const gameId = result.gameId;
+            const game = games[gameId];
+            if(game.clients.length>6)
+                return;
+            const color = colors[game.clients.length]
+            game.clients.push({
+                "clientId":clientId,
+                "color":color
+
+            })
+            const payLaod = {
+                "method":"join",
+                "game":game
+                
+            }
+            //loop through all clients and tell them who joined...
+            game.clients.forEach(c => {
+                clients[c.clientId].connection.send(JSON.stringify(payLaod));                
+            });
+            
+            
+
+        }
        
     })
     const clientId=uuidv4();
+    
     clients[clientId]={
         "connection":connection
     }

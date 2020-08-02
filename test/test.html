@@ -1,42 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Testing</title>
-</head>
-<body>
-    <h1>Game Tester</h1>
-    <button id="btnCreate">Create New Game</button>
-    <script>
-        let ws=new WebSocket("ws://localhost:9090")
-        let clientId=null;
-        let gameId=null;
-        const btnCreate=document.getElementById("btnCreate");
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Game Testing</title>
+    </head>
+    <body>
+        <h1>Game Tester</h1>
+        <button id="btnCreate">Create New Game</button>
 
-        btnCreate.addEventListener("click",e=>{
-            const payLoad ={
-                "method":"create",
-                "clientId":clientId
+        <input type="text" id="gameIDFeild" name="GameID">
+        <button id="btnJoin">Join Game</button>
+
+        <div id="divPlayers"></div>
+        <script>
+            let ws = new WebSocket("ws://localhost:9090")
+            const clientArr = []
+            let clientId = null;
+            let gameId = null;
+            const btnCreate = document.getElementById("btnCreate");
+            const btnJoin = document.getElementById("btnJoin");
+            const textGameID = document.getElementById("gameIDFeild");
+            const divContent = document.getElementById("divPlayers");
+            btnCreate.addEventListener("click", e => {
+                const payLoad = {
+                    "method": "create",
+                    "clientId": clientId
+                }
+                ws.send(JSON.stringify(payLoad));
+            })
+
+            btnJoin.addEventListener("click", e => {
+                if (gameId === null && textGameID.value !== null) {
+                    gameId = textGameID.value;
+                }
+                if (gameId !== null) {
+
+                    const payLoad = {
+                        "method": "join",
+                        "clientId": clientId,
+                        "gameId": gameId
+                    }
+                    ws.send(JSON.stringify(payLoad));
+                }
+            })
+            ws.onmessage = message => {
+                const response = JSON.parse(message.data);
+                // connect
+                if (response.method === "connect") {
+                    clientId = response.clientId;
+                    console.log("Successfully connected with server with ClientID:" + clientId);
+                }
+
+                // create
+                if (response.method === "create") {
+                    gameId = response.game.id;
+                    console.log("Successfully created game with GameID:" + gameId);
+                }
+
+                if (response.method === "join") {
+                    gameClients = response.game.clients;
+                    // console.log("Game Joined by "+response.game.clients[0].color)
+
+                    gameClients.forEach(c => {
+                        if (clientArr.includes(c.clientId) === false) {
+                            clientArr.push(c.clientId);
+                            const d = document.createElement("div")
+                            d.style.width = "100px";
+                            d.style.backgroundColor = c.color;
+                            d.textContent = c.clientId;
+                            divPlayers.appendChild(d);
+                        }
+                    });
+                }
+
             }
-            ws.send(JSON.stringify(payLoad));
-        })
-        ws.onmessage = message=>{
-            const response=JSON.parse(message.data);
-            //connect
-            if(response.method==="connect"){
-                clientId=response.clientId;
-                console.log("Successfully connected with server with ClientID:"+clientId);
-            }
+        </script>
 
-            //create 
-            if(response.method==="create"){
-                gameId=response.game.id;
-                console.log("Successfully created game with GameID:"+gameId);
-            }
-
-        }
-    </script>
-
-</body>
+    </body>
 </html>
