@@ -26,7 +26,7 @@ wsServer.on("request",request=>{
             const gameId=uuidv4();
             games[gameId]={
                 "id":gameId,
-                "balls":20,
+                "balls":24,
                 "clients":[]
             }
             const payLoad={

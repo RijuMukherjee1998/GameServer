@@ -13,15 +13,18 @@
         <button id="btnJoin">Join Game</button>
 
         <div id="divPlayers"></div>
+        <div id="divBoard"></div>
         <script>
             let ws = new WebSocket("ws://localhost:9090")
             const clientArr = []
             let clientId = null;
             let gameId = null;
+            let playerColor=null;
             const btnCreate = document.getElementById("btnCreate");
             const btnJoin = document.getElementById("btnJoin");
             const textGameID = document.getElementById("gameIDFeild");
             const divContent = document.getElementById("divPlayers");
+            const divBoard  = document.getElementById("divBoard");
             btnCreate.addEventListener("click", e => {
                 const payLoad = {
                     "method": "create",
@@ -71,7 +74,27 @@
                             d.textContent = c.clientId;
                             divPlayers.appendChild(d);
                         }
+                        if(c.clientId === clientId) 
+                            playerColor=c.color;
                     });
+
+                    while(divBoard.firstChild)
+                        divBoard.removeChild(divBoard.firstChild);
+
+                    for(let i=0;i<response.game.balls;i++){
+                        const b = document.createElement("button");
+                        b.id = "ball" + i;
+                        b.tag = i;
+                        b.textContent=i+1
+                        b.style.width="150px";
+                        b.style.height="150px";
+                        b.addEventListener("click" , e=>{
+                            b.style.backgroundColor=playerColor;
+                        });
+                        divBoard.appendChild(b);
+
+                    }
+
                 }
 
             }
