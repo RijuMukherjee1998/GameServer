@@ -83,18 +83,40 @@
 
                     for(let i=0;i<response.game.balls;i++){
                         const b = document.createElement("button");
-                        b.id = "ball" + i;
-                        b.tag = i;
+                        let n =i.toString()
+                        b.id = n;
+                        b.tag = "balls"+i+1;
                         b.textContent=i+1
                         b.style.width="150px";
                         b.style.height="150px";
                         b.addEventListener("click" , e=>{
                             b.style.backgroundColor=playerColor;
+                            const payLoad = {
+                                "method":"play",
+                                "clientId":clientId,
+                                "gameId":gameId,
+                                "ballId":n,
+                                "color":playerColor
+                            }
+                            ws.send(JSON.stringify(payLoad));
                         });
                         divBoard.appendChild(b);
 
                     }
 
+                }
+
+                if(response.method === "update"){
+                    let states = response.states;
+                    console.log("updating...")
+                    console.log(states);
+                    Object.keys(states).forEach(function(key) {
+                        let bId = states[key].ballId
+                        
+                        let bColor= states[key].ballColor;
+                        
+                        document.getElementById(bId).style.backgroundColor = bColor;
+                    });
                 }
 
             }
